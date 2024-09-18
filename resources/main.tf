@@ -6,7 +6,7 @@ data "terraform_remote_state" "iam" {
   config = {
     bucket               = "terraform-state-datalake-dev-876278403405-us-east-1"
     key                  = "terraform.tfstate"
-    workspace_key_prefix = "datalake/iam-roles"
+    workspace_key_prefix = "demoiam/iam-roles"
     region               = var.aws_region
   }
 }
