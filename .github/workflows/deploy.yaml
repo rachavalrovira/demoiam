@@ -5,7 +5,9 @@ on:
     branches:
       - main
     paths:
-      - 'terraform/**'
+      - 'iam/**'
+      - 'resources/**'
+      - 'src/**'
   workflow_dispatch:
     inputs:
       environment:
