@@ -63,7 +63,7 @@ jobs:
       - name: Terraform Plan (IAM Resources)
         id: plan_iam
         run: |
-          VAR_FILE="../iam/${{ github.event.inputs.environment }}/dev/${{ github.event.inputs.environment }}.tfvars"
+          VAR_FILE="${{ github.event.inputs.environment }}/${{ github.event.inputs.environment }}.tfvars"
           PLAN_FILE="plan-${{ github.event.inputs.environment }}-iam.tfplan"
           terraform plan -var-file=$VAR_FILE -out=$PLAN_FILE
         working-directory: iam
@@ -131,7 +131,7 @@ jobs:
       - name: Terraform Plan (Application Resources)
         id: plan_app
         run: |
-          VAR_FILE="../resources/${{ github.event.inputs.environment }}/${{ github.event.inputs.environment }}.tfvars"
+          VAR_FILE="${{ github.event.inputs.environment }}/${{ github.event.inputs.environment }}.tfvars"
           PLAN_FILE="plan-${{ github.event.inputs.environment }}-app.tfplan"
           terraform plan -var-file=$VAR_FILE -out=$PLAN_FILE
         working-directory: resources
