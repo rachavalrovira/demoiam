@@ -1,4 +1,4 @@
-bucket                   = "terraform-state-datalake-dev-876278403405-us-east-1"
+bucket                   = "iam-demo-bucket-876278403405"
 key                      = "terraform.tfstate"
 region                   = "us-east-1"
 dynamodb_table           = "terraform-state-datalake-dev-876278403405-us-east-1"
