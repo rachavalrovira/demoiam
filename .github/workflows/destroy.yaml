@@ -1,1 +1,156 @@
 name: Destroy Terraform Application and IAM Resources 
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'iam/**'
+      - 'resources/**'
+      - 'src/**'
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Environment to deploy (dev, qa or prod)'
+        required: true
+        default: 'dev'
+
+permissions:
+  id-token: write
+  contents: read
+  issues: write
+
+jobs:
+  destroy_iam_resources:
+    runs-on: ubuntu-latest
+    env:
+      AWS_REGION: us-east-1
+      TF_VERSION: 1.8.2
+      PYTHON_VERSION: '3.12.0'
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Set up environment variable
+        run: echo "WORKSPACE=${{ github.event.inputs.environment }}" >> $GITHUB_ENV
+
+      - name: Configure AWS Credentials with OIDC
+        id: creds
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::876278403405:role/github-oidc-automation
+          aws-region: ${{ env.AWS_REGION }}
+          role-session-name: GitHubActionsSession
+          output-credentials: true
+
+      - name: Set up Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: ${{ env.TF_VERSION }}
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Terraform Init and Workspace (IAM Resources)
+        run: |
+          terraform init -backend-config=../iam/${{ github.event.inputs.environment }}/backend.hcl
+          terraform workspace select ${{ github.event.inputs.environment }} || terraform workspace new ${{ github.event.inputs.environment }}
+        working-directory: iam
+
+      - name: Terraform Plan (IAM Resources)
+        id: plan_iam
+        run: |
+          VAR_FILE="./${{ github.event.inputs.environment }}/${{ github.event.inputs.environment }}.tfvars"
+          PLAN_FILE="plan-${{ github.event.inputs.environment }}-iam.tfplan"
+          terraform plan -var-file=$VAR_FILE -out=$PLAN_FILE
+        working-directory: iam
+
+      - name: Terraform Plan Status (IAM Resources)
+        if: steps.plan_iam.outcome == 'failure'
+        run: exit 1
+  
+      - name: Wait for approval (IAM Resources)
+        uses: trstringer/manual-approval@v1
+        timeout-minutes: 60
+        with:
+          secret: ${{ secrets.GITHUB_TOKEN }}
+          approvers:  ${{ github.actor }}
+          minimum-approvals: 1
+          issue-title: "🚀 IAM Destroy Request"
+          issue-body: "New IAM resource destroy requested by @${{ github.actor }} on ${{ github.event.inputs.environment }}."
+
+      - name: Terraform Destroy (IAM Resources)
+        run: |
+            VAR_FILE="./${{ github.event.inputs.environment }}/${{ github.event.inputs.environment }}.tfvars"
+            terraform destroy -auto-approve -var-file=$VAR_FILE
+        working-directory: iam
+
+  destroy_application_resources:
+    runs-on: ubuntu-latest
+    env:
+      AWS_REGION: us-east-1
+      TF_VERSION: 1.8.2
+      PYTHON_VERSION: '3.12.0'
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Set up environment variable
+        run: echo "WORKSPACE=${{ github.event.inputs.environment }}" >> $GITHUB_ENV
+
+      - name: Configure AWS Credentials with OIDC
+        id: creds
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::876278403405:role/github-oidc-automation
+          aws-region: ${{ env.AWS_REGION }}
+          role-session-name: GitHubActionsSession
+          output-credentials: true
+
+      - name: Set up Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: ${{ env.TF_VERSION }}
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Terraform Init and Workspace (Application Resources)
+        run: |
+          terraform init -backend-config=../resources/${{ github.event.inputs.environment }}/backend.hcl
+          terraform workspace select ${{ github.event.inputs.environment }} || terraform workspace new ${{ github.event.inputs.environment }}
+        working-directory: resources
+
+      - name: Terraform Plan (Application Resources)
+        id: plan_app
+        run: |
+          VAR_FILE="./${{ github.event.inputs.environment }}/${{ github.event.inputs.environment }}.tfvars"
+          PLAN_FILE="plan-${{ github.event.inputs.environment }}-app.tfplan"
+          terraform plan -var-file=$VAR_FILE -out=$PLAN_FILE
+        working-directory: resources
+
+      - name: Terraform Plan Status (Application Resources)
+        if: steps.plan_app.outcome == 'failure'
+        run: exit 1
+  
+      - name: Wait for approval (Application Resources)
+        uses: trstringer/manual-approval@v1
+        timeout-minutes: 60
+        with:
+          secret: ${{ secrets.GITHUB_TOKEN }}
+          approvers:  ${{ github.actor }}
+          minimum-approvals: 1
+          issue-title: "🚀 Application Destroy Request"
+          issue-body: "New application resource destroy requested by @${{ github.actor }} on ${{ github.event.inputs.environment }}."
+
+      - name: Terraform Destroy (Application Resources)
+        run: |
+          VAR_FILE="./${{ github.event.inputs.environment }}/${{ github.event.inputs.environment }}.tfvars"
+          terraform destroy -auto-approve -var-file=$VAR_FILE
+        working-directory: resources
