@@ -4,7 +4,7 @@ data "aws_caller_identity" "current" {}
 data "terraform_remote_state" "iam" {
   backend = "s3"
   config = {
-    bucket               = "iam-demo-bucket-terraform-state-datalake-dev-876278403405-us-east-1"
+    bucket               = "terraform-state-datalake-dev-876278403405-us-east-1"
     key                  = "terraform.tfstate"
     workspace_key_prefix = "datalake/iam-roles"
     region               = var.aws_region
