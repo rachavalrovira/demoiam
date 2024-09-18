@@ -1,6 +1,3 @@
-provider "aws" {
-  region = var.aws_region
-}
 data "aws_caller_identity" "current" {}
 
 module "basic_lambda_role" {
@@ -9,7 +6,7 @@ module "basic_lambda_role" {
   create_role          = true
   role_requires_mfa    = false
   trusted_role_actions = ["sts:AssumeRole"]
-  role_name            = "lambda-basic-generic-role"
+  role_name            = "${var.resources_prefix}-lambda-basic-generic-role-${var.environment}"
   trusted_role_services = [
     "lambda.amazonaws.com"
   ]
@@ -24,7 +21,7 @@ module "dynamodb_writer_role" {
   create_role          = true
   role_requires_mfa    = false
   trusted_role_actions = ["sts:AssumeRole"]
-  role_name            = "${var.resources_prefix}-lambda-dynamodb-writer-role"
+  role_name            = "${var.resources_prefix}-lambda-dynamodb-writer-role-${var.environment}"
   trusted_role_services = [
     "lambda.amazonaws.com"
   ]
@@ -50,7 +47,7 @@ module "s3_rw_role" {
   create_role          = true
   role_requires_mfa    = false
   trusted_role_actions = ["sts:AssumeRole"]
-  role_name            = "${var.resources_prefix}-lambda-s3-rw-role"
+  role_name            = "${var.resources_prefix}-lambda-s3-rw-role-${var.environment}"
   trusted_role_services = [
     "lambda.amazonaws.com"
   ]

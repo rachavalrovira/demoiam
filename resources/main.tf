@@ -1,15 +1,13 @@
-provider "aws" {
-  region = var.aws_region
-}
 
 data "aws_caller_identity" "current" {}
 
 data "terraform_remote_state" "iam" {
   backend = "s3"
   config = {
-    bucket = "iam-demo-bucket-${local.account_id}"
-    key    = "iam-demo-iam.tfstate"
-    region = var.aws_region
+    bucket               = "iam-demo-bucket-terraform-state-datalake-dev-876278403405-us-east-1"
+    key                  = "terraform.tfstate"
+    workspace_key_prefix = "datalake/iam-roles"
+    region               = var.aws_region
   }
 }
 
@@ -48,11 +46,11 @@ module "lambda_function_1" {
 
 
 module "lambda_function_2" {
-  source        = "terraform-aws-modules/lambda/aws"
-  function_name = "${var.resources_prefix}-basic-lambda"
-  handler       = "index.lambda_handler"
-  runtime       = "python3.12"
-  source_path   = "../src/basic_lambda"
+  source                                  = "terraform-aws-modules/lambda/aws"
+  function_name                           = "${var.resources_prefix}-basic-lambda"
+  handler                                 = "index.lambda_handler"
+  runtime                                 = "python3.12"
+  source_path                             = "../src/basic_lambda"
   attach_tracing_policy                   = true
   tracing_mode                            = "Active"
   create_current_version_allowed_triggers = false
@@ -66,8 +64,8 @@ module "s3_bucket" {
   acl                                   = "private"
   force_destroy                         = true
   attach_deny_insecure_transport_policy = true
-  control_object_ownership = true
-  object_ownership         = "ObjectWriter"
+  control_object_ownership              = true
+  object_ownership                      = "ObjectWriter"
   server_side_encryption_configuration = {
     rule = {
       apply_server_side_encryption_by_default = {

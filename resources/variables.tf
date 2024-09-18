@@ -9,3 +9,19 @@ variable "resources_prefix" {
   description = "The resources prefix"
   default     = "iam-demo"
 }
+
+variable "environment" {
+  type = string
+}
+
+variable "role_arn" {
+  description = "The ARN of the role to assume."
+  type        = string
+  default     = ""
+}
+variable "session_name" {
+  description = "The name to associate with the assumed role session."
+  type        = string
+  default     = ""
+
+}

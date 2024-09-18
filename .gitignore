@@ -5,7 +5,6 @@ Sure, here's an example of a .gitignore file for a Terraform project: [1]
 *.tfstate
 *.tfstate.*
 *.tfplan
-*.tfvars
 terraform.tfvars
 crash.log
 crash.*.log
