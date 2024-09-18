@@ -20,6 +20,7 @@ permissions:
 
 jobs:
   destroy_iam_resources:
+    name: Destroy IAM Resources
     runs-on: ubuntu-latest
     env:
       AWS_REGION: us-east-1
@@ -87,6 +88,7 @@ jobs:
         working-directory: iam
 
   destroy_application_resources:
+    name: Destroy Application Resources
     runs-on: ubuntu-latest
     env:
       AWS_REGION: us-east-1
