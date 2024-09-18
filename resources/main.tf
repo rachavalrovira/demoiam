@@ -9,7 +9,7 @@ data "terraform_remote_state" "iam" {
     assume_role = {
       role_arn = "arn:aws:iam::876278403405:role/github-oidc-automation"
     }
-    workspace_key_prefix = "demoiam/iam-roles/${var.environment}/"
+    workspace_key_prefix = "demoiam/iam-roles/${var.environment}"
     region               = var.aws_region
   }
 }
