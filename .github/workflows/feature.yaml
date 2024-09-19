@@ -1,0 +1,58 @@
+name: Terraform CI Pipeline
+
+on:
+  push:
+    branches:
+      - 'feature/*'  # Run workflow only on feature branches
+  pull_request:
+    branches:
+      - 'feature/*'  # Also trigger on pull requests to feature branches
+
+jobs:
+  terraform:
+    name: Terraform CI
+    runs-on: ubuntu-latest
+
+    steps:
+    # Checkout the code
+    - name: Checkout Code
+      uses: actions/checkout@v3
+
+    # Set up Terraform
+    - name: Setup Terraform
+      uses: hashicorp/setup-terraform@v2
+      with:
+        terraform_version: 1.5.0  # Change to your required version
+
+    # Terraform Format
+    - name: Check Terraform Format
+      run: terraform fmt -check
+
+    # Terraform Init
+    - name: Initialize Terraform
+      run: terraform init
+
+    # Terraform Validate
+    - name: Terraform Validate
+      run: terraform validate
+
+    # Run tflint
+    - name: Run TFLint
+      run: |
+        curl -s https://raw.githubusercontent.com/terraform-linters/tflint/master/install_linux.sh | bash
+        tflint
+
+    # Run Trivy for security checks
+    - name: Run Trivy Security Scans
+      run: |
+        curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sh
+        trivy filesystem --security-checks vuln,config --exit-code 1 .
+
+    # Run Terratest (make sure you have tests in your project)
+    - name: Run Terratest
+      run: |
+        sudo apt-get update
+        sudo apt-get install golang-go
+        go mod init terraform-tests  # Initialize Go modules if needed
+        go get github.com/gruntwork-io/terratest/modules/terraform  # Fetch Terratest dependencies
+        go test -v
