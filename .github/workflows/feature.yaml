@@ -14,6 +14,7 @@ permissions:
   checks: write
   pull-requests: write
   security-events: write
+  id-token: write
 
 env:
   AWS_REGION: us-east-1
@@ -80,7 +81,7 @@ jobs:
           sarif_file: 'trivy-results.sarif'
           category: Trivy
         env:
-          GITHUB_TOKEN: ${{ secrets.CODEQL_TOKEN }}  
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  
 
 
   publish:
