@@ -28,7 +28,7 @@ jobs:
         run: |
           curl -s https://raw.githubusercontent.com/terraform-linters/tflint/master/install_linux.sh | bash
           tflint --init
-          tflint --format=sarif --recursive --chdir= > test-reports/tflint-report.sarif || true
+          tflint --format=sarif --recursive --chdir= > tflint-report.sarif || true
 
       - name: Upload Tflint scan results to GitHub Security tab
         uses: github/codeql-action/upload-sarif@v3
