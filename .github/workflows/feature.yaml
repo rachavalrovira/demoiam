@@ -94,8 +94,10 @@ jobs:
           curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sh
           export PATH=$PATH:$(pwd)/bin  # Add the directory containing trivy to PATH
           terraform init -backend=false
+          pwd
           mkdir -p test-reports
           mkdir -p contrib
+          ls -la
           curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/junit.tpl -o contrib/junit.tpl
           trivy config ./ -f template --template "contrib/junit.tpl" --severity HIGH,CRITICAL --output test-reports/trivy-report.xml || true
           ls -R test-reports
