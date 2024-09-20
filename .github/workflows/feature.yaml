@@ -8,6 +8,12 @@ on:
     branches:
       - 'feature/*'  # Trigger workflow on pull requests to feature branches
 
+permissions:
+  contents: read
+  issues: read
+  checks: write
+  pull-requests: write    
+
 env:
   AWS_REGION: us-east-1  # Global environment variable for AWS region
   TF_VERSION: 1.8.2      # Global environment variable for Terraform version
@@ -69,7 +75,7 @@ jobs:
           terraform init -backend=false
           tflint --init
           mkdir -p test-reports
-          tflint --format=junit --recursive --chdir=./iam > test-reports/tflint-report.xml || true
+          tflint --format=junit --recursive --chdir= > test-reports/tflint-report.xml || true
 
   trivy:
     name: Trivy Security Scan
@@ -82,4 +88,18 @@ jobs:
           export PATH=$PATH:$(pwd)/bin  # Add the directory containing trivy to PATH
           terraform init -backend=false
           mkdir -p test-reports
-          trivy config ./ -f template --template "/contrib/junit.tpl" --severity HIGH,CRITICAL --output test-reports/trivy-report.xml
+          trivy config ./ -f template --template "@contrib/junit.tpl" --severity HIGH,CRITICAL --output test-reports/trivy-report.xml || true
+
+  publish:
+    name: Publish Test Results
+    needs: [tflint, trivy]  # Publish after linting and security scanning jobs are done
+    runs-on: ubuntu-latest
+    steps:
+      - name: Publish Test Results
+        uses: EnricoMi/publish-unit-test-result-action@v2
+        if: always()  # Always run even if jobs fail
+        with:
+          files: |
+            test-reports/**/*.xml
+            test-reports/**/*.trx
+            test-reports/**/*.json
