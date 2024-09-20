@@ -40,7 +40,7 @@ jobs:
           terraform_version: ${{ env.TF_VERSION }}  # Use global TF_VERSION
 
       - name: Run Terraform FMT
-        run: terraform fmt -recursive -check
+        run: terraform fmt -check -recursive -diff
 
   terraform_validate:
     name: Terraform Validate
@@ -69,7 +69,7 @@ jobs:
           terraform init -backend=false
           tflint --init
           mkdir -p test-reports
-          tflint --format=junit --recursive --chdir=${{ needs.setup.outputs.workspace }} > test-reports/tflint-report.xml || true
+          tflint --format=junit --recursive --chdir=./ > test-reports/tflint-report.xml || true
 
   trivy:
     name: Trivy Security Scan
