@@ -12,7 +12,8 @@ permissions:
   contents: read
   issues: read
   checks: write
-  pull-requests: write    
+  pull-requests: write
+  security-events: write
 
 env:
   AWS_REGION: us-east-1
