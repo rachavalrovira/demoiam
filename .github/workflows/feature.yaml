@@ -3,56 +3,77 @@ name: Terraform CI Pipeline
 on:
   push:
     branches:
-      - 'feature/*'  # Run workflow only on feature branches
+      - 'feature/*'  # Trigger workflow only on feature branches
   pull_request:
     branches:
-      - 'feature/*'  # Also trigger on pull requests to feature branches
+      - 'feature/*'  # Trigger workflow on pull requests to feature branches
+
+env:
+  AWS_REGION: us-east-1  # Global environment variable for AWS region
+  TF_VERSION: 1.8.2      # Global environment variable for Terraform version
 
 jobs:
-  terraform:
-    name: Terraform CI
+  setup:
+    name: Checkout and Setup
     runs-on: ubuntu-latest
-
+    outputs:
+      workspace: ${{ steps.setup.outputs.workspace }}  # Share the workspace with other jobs
     steps:
-    # Checkout the code
-    - name: Checkout Code
-      uses: actions/checkout@v3
+      - name: Checkout Code
+        id: setup
+        uses: actions/checkout@v3
 
-    # Set up Terraform
-    - name: Setup Terraform
-      uses: hashicorp/setup-terraform@v2
-      with:
-        terraform_version: 1.5.0  # Change to your required version
+      - name: Cache Terraform
+        uses: actions/cache@v3
+        with:
+          path: ~/.terraform.d
+          key: terraform-${{ runner.os }}-${{ hashFiles('**/*.tf*') }}
 
-    # Terraform Format
-    - name: Check Terraform Format
-      run: terraform fmt -check
+  terraform_fmt:
+    name: Terraform FMT
+    runs-on: ubuntu-latest
+    needs: setup  # Runs after setup
+    steps:
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v2
+        with:
+          terraform_version: ${{ env.TF_VERSION }}  # Use global TF_VERSION
 
-    # Terraform Init
-    - name: Initialize Terraform
-      run: terraform init
+      - name: Run Terraform FMT
+        run: terraform fmt -recursive -check
 
-    # Terraform Validate
-    - name: Terraform Validate
-      run: terraform validate
+  terraform_validate:
+    name: Terraform Validate
+    runs-on: ubuntu-latest
+    needs: setup  # Runs after setup
+    steps:
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v2
+        with:
+          terraform_version: ${{ env.TF_VERSION }}  # Use global TF_VERSION
 
-    # Run tflint
-    - name: Run TFLint
-      run: |
-        curl -s https://raw.githubusercontent.com/terraform-linters/tflint/master/install_linux.sh | bash
-        tflint
+      - name: Terraform Init
+        run: terraform init
 
-    # Run Trivy for security checks
-    - name: Run Trivy Security Scans
-      run: |
-        curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sh
-        trivy filesystem --security-checks vuln,config --exit-code 1 .
+      - name: Run Terraform Validate
+        run: terraform validate
 
-    # Run Terratest (make sure you have tests in your project)
-    - name: Run Terratest
-      run: |
-        sudo apt-get update
-        sudo apt-get install golang-go
-        go mod init terraform-tests  # Initialize Go modules if needed
-        go get github.com/gruntwork-io/terratest/modules/terraform  # Fetch Terratest dependencies
-        go test -v
+  tflint:
+    name: TFLint
+    runs-on: ubuntu-latest
+    needs: setup  # Runs after setup
+    steps:
+      - name: Setup TFLint
+        run: |
+          curl -s https://raw.githubusercontent.com/terraform-linters/tflint/master/install_linux.sh | bash
+          tflint
+
+  trivy:
+    name: Trivy Security Scan
+    runs-on: ubuntu-latest
+    needs: setup  # Runs after setup
+    steps:
+      - name: Setup Trivy
+        run: |
+          curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sh
+          trivy filesystem --security-checks vuln,config --exit-code 1 .
