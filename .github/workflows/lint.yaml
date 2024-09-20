@@ -16,31 +16,35 @@ jobs:
         os: [ubuntu-latest, macos-latest, windows-latest]
 
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v3
       name: Checkout source code
 
     - uses: actions/cache@v4
       name: Cache plugin dir
       with:
         path: ~/.tflint.d/plugins
-        key: ${{ matrix.os }}-tflint-${{ hashFiles('.tflint.hcl') }}
+        key: ${{ matrix.os }}-tflint-v0.52.0-${{ hashFiles('.tflint.hcl') }}
+        restore-keys: |
+          ${{ matrix.os }}-tflint-
 
     - uses: terraform-linters/setup-tflint@v4
       name: Setup TFLint
       with:
         tflint_version: v0.52.0
 
-    - name: Show version
+    - name: Show TFLint version
       run: tflint --version
 
     - name: Init TFLint
       run: tflint --init
       env:
-        # https://github.com/terraform-linters/tflint/blob/master/docs/user-guide/plugins.md#avoiding-rate-limiting
-        GITHUB_TOKEN: ${{ github.token }}
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Avoid rate limiting
 
     - name: Create test-reports directory
       run: mkdir -p test-reports
 
-    - name: Run TFLint
-      run: tflint --format=junit --recursive --chdir=./iam > test-reports/tflint-report.xml || true
+    - name: Run TFLint on multiple directories
+      run: |
+        for dir in ./iam ./resources; do
+          tflint --format junit --chdir="$dir" >> test-reports/tflint-report.xml || true
+        done
