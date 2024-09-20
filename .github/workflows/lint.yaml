@@ -39,5 +39,8 @@ jobs:
         # https://github.com/terraform-linters/tflint/blob/master/docs/user-guide/plugins.md#avoiding-rate-limiting
         GITHUB_TOKEN: ${{ github.token }}
 
+    - name: Create test-reports directory
+      run: mkdir -p test-reports
+
     - name: Run TFLint
       run: tflint --format=junit --recursive --chdir=./ > test-reports/tflint-report.xml || true
