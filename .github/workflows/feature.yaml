@@ -130,3 +130,4 @@ jobs:
         with:
           files: |
             tflint-report.xml
+            trivy-report.xml
