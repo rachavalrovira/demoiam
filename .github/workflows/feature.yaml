@@ -76,6 +76,7 @@ jobs:
           tflint --init
           mkdir -p test-reports
           tflint --format=junit --recursive --chdir= > test-reports/tflint-report.xml || true
+          ls -R test-reports
 
   trivy:
     name: Trivy Security Scan
@@ -89,6 +90,7 @@ jobs:
           terraform init -backend=false
           mkdir -p test-reports
           trivy config ./ -f template --template "@contrib/junit.tpl" --severity HIGH,CRITICAL --output test-reports/trivy-report.xml || true
+          ls -R test-reports
 
   publish:
     name: Publish Test Results
