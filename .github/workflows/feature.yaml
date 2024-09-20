@@ -15,6 +15,7 @@ permissions:
   pull-requests: write
   security-events: write
   id-token: write
+  actions: read
 
 env:
   AWS_REGION: us-east-1
