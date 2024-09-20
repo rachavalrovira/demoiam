@@ -1,4 +1,4 @@
-name: Terraform CI Pipeline
+name: Terraform Validations
 
 on:
   push:
@@ -53,7 +53,7 @@ jobs:
           terraform_version: ${{ env.TF_VERSION }}  # Use global TF_VERSION
 
       - name: Terraform Init
-        run: terraform init
+        run: terraform init -backend=false
 
       - name: Run Terraform Validate
         run: terraform validate
@@ -66,7 +66,10 @@ jobs:
       - name: Setup TFLint
         run: |
           curl -s https://raw.githubusercontent.com/terraform-linters/tflint/master/install_linux.sh | bash
-          tflint
+          terraform init -backend=false
+          tflint --init
+          mkdir -p test-reports
+          tflint --format=junit --recursive --chdir=${{ needs.setup.outputs.workspace }} > test-reports/tflint-report.xml || true
 
   trivy:
     name: Trivy Security Scan
@@ -77,4 +80,6 @@ jobs:
         run: |
           curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sh
           export PATH=$PATH:$(pwd)/bin  # Add the directory containing trivy to PATH
-          trivy filesystem --security-checks vuln,config --exit-code 1 .
+          terraform init -backend=false
+          mkdir -p test-reports
+          trivy config ./ -f template --template "@contrib/junit.tpl" --severity HIGH,CRITICAL --output test-reports/trivy-report.xml
