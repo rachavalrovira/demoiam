@@ -24,13 +24,13 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Run trivy IaC scan
+      - name: Setup TFLint
         run: |
-          curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sh
-          export PATH=$PATH:$(pwd)/bin
-          trivy config ./ --severity CRITICAL,HIGH,MEDIUM,LOW,UNKNOWN --format sarif --output trivy-results.sarif || true
+          curl -s https://raw.githubusercontent.com/terraform-linters/tflint/master/install_linux.sh | bash
+          tflint --init
+          tflint --format=sarif --recursive --chdir= > test-reports/tflint-report.sarif || true
 
-      - name: Upload Trivy scan results to GitHub Security tab
+      - name: Upload Tflint scan results to GitHub Security tab
         uses: github/codeql-action/upload-sarif@v3
         with:
-          sarif_file: 'trivy-results.sarif'
+          sarif_file: 'tflint-report.sarif'
