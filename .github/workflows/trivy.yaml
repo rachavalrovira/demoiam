@@ -20,15 +20,16 @@ jobs:
           scan-ref: .
           scan-type: 'config'
           hide-progress: true
-          format: 'sarif'
-          output: 'trivy-results.sarif'
+          format: 'junit'
+          output: 'trivy-results.xml'
           exit-code: '1'
           ignore-unfixed: true
           severity: 'CRITICAL,HIGH'
           vuln-type: 'os,library'
           list-all-pkgs: false
+          template: '@/contrib/junit.tpl'
 
       - name: Upload Trivy scan results to GitHub Security tab
         uses: github/codeql-action/upload-sarif@v2
         with:
-          sarif_file: 'trivy-results.sarif'
+          sarif_file: 'trivy-results.xml'
