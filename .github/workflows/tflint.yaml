@@ -1,0 +1,36 @@
+# This workflow uses actions that are not certified by GitHub.
+# They are provided by a third-party and are governed by
+# separate terms of service, privacy policy, and support
+# documentation.
+
+name: tflint
+
+on:
+    push:
+      branches:
+        - main
+    pull_request:
+
+permissions:
+  contents: read
+  security-events: write
+  actions: read
+
+jobs:
+  build:
+    name: Build
+    runs-on: "ubuntu-20.04"
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup TFLint
+        run: |
+          curl -s https://raw.githubusercontent.com/terraform-linters/tflint/master/install_linux.sh | bash
+          tflint --init
+          tflint --format=sarif --recursive --chdir= > tflint-report.sarif || true
+
+      - name: Upload Tflint scan results to GitHub Security tab
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: 'tflint-report.sarif'

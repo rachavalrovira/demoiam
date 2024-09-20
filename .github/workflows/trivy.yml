@@ -1,0 +1,36 @@
+# This workflow uses actions that are not certified by GitHub.
+# They are provided by a third-party and are governed by
+# separate terms of service, privacy policy, and support
+# documentation.
+
+name: trivy
+
+on:
+    push:
+      branches:
+        - main
+    pull_request:
+
+permissions:
+  contents: read
+  security-events: write
+  actions: read
+
+jobs:
+  build:
+    name: Build
+    runs-on: "ubuntu-20.04"
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Run trivy IaC scan
+        run: |
+          curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sh
+          export PATH=$PATH:$(pwd)/bin
+          trivy config ./ --severity CRITICAL,HIGH,MEDIUM,LOW,UNKNOWN --format sarif --output trivy-results.sarif || true
+
+      - name: Upload Trivy scan results to GitHub Security tab
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: 'trivy-results.sarif'
