@@ -30,7 +30,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Cache Terraform
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: ~/.terraform.d
           key: terraform-${{ runner.os }}-${{ hashFiles('**/*.tf*') }}
@@ -78,6 +78,12 @@ jobs:
           tflint --format=junit --recursive --chdir= > test-reports/tflint-report.xml || true
           ls -R test-reports
 
+      - name: Upload TFLint Report
+        uses: actions/upload-artifact@v3
+        with:
+          name: tflint-report
+          path: test-reports/tflint-report.xml
+
   trivy:
     name: Trivy Security Scan
     runs-on: ubuntu-latest
@@ -92,11 +98,27 @@ jobs:
           trivy config ./ -f template --template "@contrib/junit.tpl" --severity HIGH,CRITICAL --output test-reports/trivy-report.xml || true
           ls -R test-reports
 
+      - name: Upload Trivy Report
+        uses: actions/upload-artifact@v3
+        with:
+          name: trivy-report
+          path: test-reports/trivy-report.xml
+
   publish:
     name: Publish Test Results
     needs: [tflint, trivy]  # Publish after linting and security scanning jobs are done
     runs-on: ubuntu-latest
     steps:
+      - name: Download TFLint Report
+        uses: actions/download-artifact@v3
+        with:
+          name: tflint-report
+
+      - name: Download Trivy Report
+        uses: actions/download-artifact@v3
+        with:
+          name: trivy-report
+
       - name: Publish Test Results
         uses: EnricoMi/publish-unit-test-result-action@v2
         if: always()  # Always run even if jobs fail
