@@ -124,5 +124,4 @@ jobs:
         if: always()  # Always run even if jobs fail
         with:
           files: |
-            trivy-report.xml
             tflint-report.xml
