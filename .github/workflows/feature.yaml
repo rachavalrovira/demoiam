@@ -3,10 +3,10 @@ name: Terraform Validations
 on:
   push:
     branches:
-      - 'feature/*'  # Trigger workflow only on feature branches
+      - 'feature/*'
   pull_request:
     branches:
-      - 'feature/*'  # Trigger workflow on pull requests to feature branches
+      - 'feature/*'
 
 permissions:
   contents: read
@@ -15,18 +15,15 @@ permissions:
   pull-requests: write    
 
 env:
-  AWS_REGION: us-east-1  # Global environment variable for AWS region
-  TF_VERSION: 1.8.2      # Global environment variable for Terraform version
+  AWS_REGION: us-east-1
+  TF_VERSION: 1.8.2
 
 jobs:
-  setup:
-    name: Checkout and Setup
+  validations:
+    name: Terraform Validations and Security Scans
     runs-on: ubuntu-latest
-    outputs:
-      workspace: ${{ steps.setup.outputs.workspace }}  # Share the workspace with other jobs
     steps:
       - name: Checkout Code
-        id: setup
         uses: actions/checkout@v4
 
       - name: Cache Terraform
@@ -35,28 +32,13 @@ jobs:
           path: ~/.terraform.d
           key: terraform-${{ runner.os }}-${{ hashFiles('**/*.tf*') }}
 
-  terraform_fmt:
-    name: Terraform Format Check
-    runs-on: ubuntu-latest
-    needs: setup  # Runs after setup
-    steps:
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
         with:
-          terraform_version: ${{ env.TF_VERSION }}  # Use global TF_VERSION
+          terraform_version: ${{ env.TF_VERSION }}
 
       - name: Run Terraform FMT
         run: terraform fmt -check -recursive -diff
-
-  terraform_validate:
-    name: Terraform Validate
-    runs-on: ubuntu-latest
-    needs: setup  # Runs after setup
-    steps:
-      - name: Setup Terraform
-        uses: hashicorp/setup-terraform@v3
-        with:
-          terraform_version: ${{ env.TF_VERSION }}  # Use global TF_VERSION
 
       - name: Terraform Init
         run: terraform init -backend=false
@@ -64,70 +46,39 @@ jobs:
       - name: Run Terraform Validate
         run: terraform validate
 
-  tflint:
-    name: Terraform Lint
-    runs-on: ubuntu-latest
-    needs: setup  # Runs after setup
-    steps:
       - name: Setup TFLint
         run: |
           curl -s https://raw.githubusercontent.com/terraform-linters/tflint/master/install_linux.sh | bash
-          terraform init -backend=false
           tflint --init
           mkdir -p test-reports
           tflint --format=junit --recursive --chdir= > test-reports/tflint-report.xml || true
-          ls -R test-reports
 
-      - name: Upload TFLint Report
-        uses: actions/upload-artifact@v3
-        with:
-          name: tflint-report
-          path: test-reports/tflint-report.xml
-
-  trivy:
-    name: Trivy Security Scan
-    runs-on: ubuntu-latest
-    needs: setup  # Runs after setup
-    steps:
       - name: Setup Trivy
         run: |
           curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sh
-          export PATH=$PATH:$(pwd)/bin  # Add the directory containing trivy to PATH
-          terraform init -backend=false
-          pwd
-          mkdir -p test-reports
-          mkdir -p contrib
-          curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/junit.tpl -o contrib/junit.tpl
-          cat contrib/junit.tpl
+          export PATH=$PATH:$(pwd)/bin
           trivy config ./ -f template --template "@contrib/junit.tpl" --severity HIGH,CRITICAL --output test-reports/trivy-report.xml || true
-          ls -R test-reports
-          cat test-reports/trivy-report.xml
 
-      - name: Upload Trivy Report
+      - name: Upload Reports
         uses: actions/upload-artifact@v3
         with:
-          name: trivy-report
-          path: test-reports/trivy-report.xml
+          name: validation-reports
+          path: test-reports
 
   publish:
     name: Publish Test Results
-    needs: [tflint, trivy]  # Publish after linting and security scanning jobs are done
     runs-on: ubuntu-latest
+    needs: validations  # Publish after validations job completes
     steps:
-      - name: Download TFLint Report
+      - name: Download Reports
         uses: actions/download-artifact@v3
         with:
-          name: tflint-report
-
-      - name: Download Trivy Report
-        uses: actions/download-artifact@v3
-        with:
-          name: trivy-report
+          name: validation-reports
 
       - name: Publish Test Results
         uses: EnricoMi/publish-unit-test-result-action@v2
-        if: always()  # Always run even if jobs fail
+        if: always()  # Always run even if the validations job fails
         with:
           files: |
-            tflint-report.xml
-            trivy-report.xml
+            test-reports/tflint-report.xml
+            test-reports/trivy-report.xml
