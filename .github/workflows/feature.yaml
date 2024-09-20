@@ -69,7 +69,7 @@ jobs:
           terraform init -backend=false
           tflint --init
           mkdir -p test-reports
-          tflint --format=junit --recursive --chdir=./iam ./resources > test-reports/tflint-report.xml || true
+          tflint --format=junit --recursive --chdir=./iam > test-reports/tflint-report.xml || true
 
   trivy:
     name: Trivy Security Scan
@@ -82,4 +82,4 @@ jobs:
           export PATH=$PATH:$(pwd)/bin  # Add the directory containing trivy to PATH
           terraform init -backend=false
           mkdir -p test-reports
-          trivy config ./ -f template --template "@contrib/junit.tpl" --severity HIGH,CRITICAL --output test-reports/trivy-report.xml
+          trivy config ./ -f template --template "/contrib/junit.tpl" --severity HIGH,CRITICAL --output test-reports/trivy-report.xml

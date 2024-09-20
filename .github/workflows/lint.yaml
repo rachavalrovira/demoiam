@@ -43,4 +43,4 @@ jobs:
       run: mkdir -p test-reports
 
     - name: Run TFLint
-      run: tflint --format=junit --recursive --chdir=./iam ./resources > test-reports/tflint-report.xml || true
+      run: tflint --format=junit --recursive --chdir=./iam > test-reports/tflint-report.xml || true
