@@ -98,9 +98,10 @@ jobs:
           mkdir -p test-reports
           mkdir -p contrib
           ls -la
+          ls -R ${{ needs.setup.outputs.workspace}}
           curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/junit.tpl -o contrib/junit.tpl
           cat contrib/junit.tpl
-          trivy config ./ -f template --template "${HOME}/work/demoiam/demoiam/@contrib/junit.tpl" --severity HIGH,CRITICAL --output test-reports/trivy-report.xml || true
+          trivy config ./ -f template --template ${{ needs.setup.outputs.workspace}}/contrib/junit.tpl --severity HIGH,CRITICAL --output test-reports/trivy-report.xml || true
           ls -R test-reports
           cat test-reports/trivy-report.xml
 
