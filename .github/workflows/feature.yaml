@@ -97,6 +97,7 @@ jobs:
           mkdir -p test-reports
           trivy config ./ -f template --template "@contrib/junit.tpl" --severity HIGH,CRITICAL --output test-reports/trivy-report.xml || true
           ls -R test-reports
+          cat test-reports/trivy-report.xml
 
       - name: Upload Trivy Report
         uses: actions/upload-artifact@v3
