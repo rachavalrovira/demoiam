@@ -95,9 +95,9 @@ jobs:
           export PATH=$PATH:$(pwd)/bin  # Add the directory containing trivy to PATH
           terraform init -backend=false
           mkdir -p test-reports
-          pwd
-          ls -la
-          trivy config ./ -f template --template "${{ needs.setup.outputs.workspace }}/contrib/junit.tpl" --severity HIGH,CRITICAL --output test-reports/trivy-report.xml || true
+          mkdir -p contrib
+          curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/junit.tpl -o contrib/junit.tpl
+          trivy config ./ -f template --template "contrib/junit.tpl" --severity HIGH,CRITICAL --output test-reports/trivy-report.xml || true
           ls -R test-reports
           cat test-reports/trivy-report.xml
 
