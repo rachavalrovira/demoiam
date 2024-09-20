@@ -100,7 +100,7 @@ jobs:
           ls -la
           curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/junit.tpl -o contrib/junit.tpl
           cat contrib/junit.tpl
-          trivy config ./ -f template --template "${HOME}/@contrib/junit.tpl" --severity HIGH,CRITICAL --output test-reports/trivy-report.xml || true
+          trivy config ./ -f template --template "${HOME}/work/demoiam/demoiam/@contrib/junit.tpl" --severity HIGH,CRITICAL --output test-reports/trivy-report.xml || true
           ls -R test-reports
           cat test-reports/trivy-report.xml
 
