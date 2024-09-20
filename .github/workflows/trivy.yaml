@@ -1,4 +1,5 @@
 name: Trivy IaC Scan
+
 on:
   push:
     branches:
@@ -6,10 +7,12 @@ on:
   pull_request:
     branches:
       - 'feature/*'  # Trigger workflow on pull requests to feature branches
+
 jobs:
   build:
-    name: Build
+    name: Trivy IaC Scan
     runs-on: ubuntu-20.04
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -17,16 +20,13 @@ jobs:
       - name: Run Trivy vulnerability scanner in IaC mode
         uses: aquasecurity/trivy-action@0.20.0
         with:
-          scan-ref: 'main'  # Scan the main branch
-          scan-type: 'config'
+          scan-type: 'config'  # Scan for misconfigurations in IaC
           hide-progress: false
           format: 'sarif'
           output: 'trivy-results.sarif'
-          exit-code: '1'
-          ignore-unfixed: true
+          exit-code: '1'  # Fail the build if vulnerabilities are found
+          ignore-unfixed: true  # Ignore issues with no fix available
           severity: 'CRITICAL,HIGH'
-          vuln-type: 'os,library'
-          list-all-pkgs: false
 
       - name: Upload Trivy scan results to GitHub Security tab
         uses: github/codeql-action/upload-sarif@v2
