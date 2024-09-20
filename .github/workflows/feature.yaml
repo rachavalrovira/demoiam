@@ -53,6 +53,12 @@ jobs:
           mkdir -p test-reports
           tflint --format=junit --recursive --chdir= > test-reports/tflint-report.xml || true
 
+      - name: Upload TfLint Artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: tf-lint-report
+          path: test-reports/tflint-report.xml
+
       - name: Setup Trivy
         run: |
           curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sh
@@ -62,8 +68,8 @@ jobs:
       - name: Upload Reports
         uses: actions/upload-artifact@v3
         with:
-          name: validation-reports
-          path: test-reports
+          name: triy-report
+          path: test-reports/trivy-report.xml
 
   publish:
     name: Publish Test Results
