@@ -97,7 +97,7 @@ jobs:
           mkdir -p test-reports
           pwd
           ls -la
-          trivy config ./ -f template --template "../../@contrib/junit.tpl" --severity HIGH,CRITICAL --output test-reports/trivy-report.xml || true
+          trivy config ./ -f template --template "${{ needs.setup.outputs.workspace }}/contrib/junit.tpl" --severity HIGH,CRITICAL --output test-reports/trivy-report.xml || true
           ls -R test-reports
           cat test-reports/trivy-report.xml
 
