@@ -105,6 +105,7 @@ jobs:
         working-directory: resources  # Ensure this directory exists
 
       - run: terraform workspace select dev || terraform workspace new dev
+        working-directory: resources  # Ensure this directory exists
 
       - run: terraform plan -var-file=dev/dev.tfvars -lock=false -out terraform.plan
         working-directory: resources  # Ensure this directory exists
