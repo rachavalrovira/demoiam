@@ -2,10 +2,33 @@ name: terraform-plan
 
 on:
   pull_request:
+    paths:
+      - 'iam/**'
+      - 'resources/**'
 
 jobs:
+  determine-changes:
+    runs-on: ubuntu-latest
+    outputs:
+      iam_changed: ${{ steps.filter.outputs.iam }}
+      resources_changed: ${{ steps.filter.outputs.resources }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check which folders have changed
+        id: filter
+        uses: dorny/paths-filter@v2
+        with:
+          filters: |
+            iam:
+              - 'iam/**'  # Ensure this path is correct
+            resources:
+              - 'resources/**'  # Ensure this path is correct
+
   terraform-plan-iam:
-    if: contains(github.event.pull_request.head.ref, 'iam') || contains(github.event.pull_request.head.ref, 'iam')
+    needs: determine-changes
+    if: needs.determine-changes.outputs.iam_changed == 'true'  # Boolean check without quotes
     runs-on: ubuntu-latest
     name: Terraform Plan for IAM Resources
 
@@ -15,29 +38,27 @@ jobs:
         with:
           terraform_wrapper: false
 
-      - run: terraform init 
-        working-directory: iam
+      - run: terraform init
+        working-directory: iam  # Ensure this directory exists
 
       - run: terraform plan -lock=false -out terraform.plan
-        working-directory: iam
+        working-directory: iam  # Ensure this directory exists
 
-      # generate plain output
       - run: terraform show -no-color terraform.plan > terraform.text
-        working-directory: iam
+        working-directory: iam  # Ensure this directory exists
 
-      # generate json output
       - run: terraform show -json terraform.plan > terraform.json
-        working-directory: iam
+        working-directory: iam  # Ensure this directory exists
 
       - uses: ahmadnassri/action-terraform-report@v4
         with:
-          # tell the action the plan outputs
           terraform-text: ${{ github.workspace }}/iam/terraform.text
           terraform-json: ${{ github.workspace }}/iam/terraform.json
           remove-stale-reports: true
 
   terraform-plan-resources:
-    if: contains(github.event.pull_request.head.ref, 'resources') || contains(github.event.pull_request.head.ref, 'resources')
+    needs: determine-changes
+    if: needs.determine-changes.outputs.resources_changed == 'true'  # Boolean check without quotes
     runs-on: ubuntu-latest
     name: Terraform Plan for Application Resources
 
@@ -47,23 +68,20 @@ jobs:
         with:
           terraform_wrapper: false
 
-      - run: terraform init 
-        working-directory: resources
+      - run: terraform init
+        working-directory: resources  # Ensure this directory exists
 
       - run: terraform plan -lock=false -out terraform.plan
-        working-directory: resources
+        working-directory: resources  # Ensure this directory exists
 
-      # generate plain output
       - run: terraform show -no-color terraform.plan > terraform.text
-        working-directory: resources
+        working-directory: resources  # Ensure this directory exists
 
-      # generate json output
       - run: terraform show -json terraform.plan > terraform.json
-        working-directory: resources
+        working-directory: resources  # Ensure this directory exists
 
       - uses: ahmadnassri/action-terraform-report@v4
         with:
-          # tell the action the plan outputs
           terraform-text: ${{ github.workspace }}/resources/terraform.text
           terraform-json: ${{ github.workspace }}/resources/terraform.json
           remove-stale-reports: true
