@@ -37,11 +37,20 @@ jobs:
       - uses: hashicorp/setup-terraform@v3
         with:
           terraform_wrapper: false
+      
+      - name: Configure AWS Credentials with OIDC
+        id: creds
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::876278403405:role/github-oidc-automation
+          aws-region: ${{ env.AWS_REGION }}
+          role-session-name: GitHubActionsSession
+          output-credentials: true 
 
-      - run: terraform init
+      - run: terraform init -backend-config=dev/backend.hcl 
         working-directory: iam  # Ensure this directory exists
 
-      - run: terraform plan -lock=false -out terraform.plan
+      - run: terraform plan -var-file=dev/dev.tfvars -lock=false -out terraform.plan
         working-directory: iam  # Ensure this directory exists
 
       - run: terraform show -no-color terraform.plan > terraform.text
