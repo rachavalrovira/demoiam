@@ -1,0 +1,123 @@
+name: terraform-plan
+
+on:
+  pull_request:
+    paths:
+      - 'iam/**'
+      - 'resources/**'
+permissions:
+  id-token: write
+  contents: read
+  issues: write
+  pull-requests: write
+  security-events: write
+  actions: read
+
+env:
+  AWS_REGION: us-east-1
+  TF_VERSION: 1.8.2
+  PYTHON_VERSION: '3.12.0'      
+
+jobs:
+  determine-changes:
+    runs-on: ubuntu-latest
+    outputs:
+      iam_changed: ${{ steps.filter.outputs.iam }}
+      resources_changed: ${{ steps.filter.outputs.resources }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check which folders have changed
+        id: filter
+        uses: dorny/paths-filter@v3
+        with:
+          filters: |
+            iam:
+              - 'iam/**'  # Ensure this path is correct
+            resources:
+              - 'resources/**'  # Ensure this path is correct
+
+  terraform-plan-iam:
+    needs: determine-changes
+    if: needs.determine-changes.outputs.iam_changed == 'true'  # Boolean check without quotes
+    runs-on: ubuntu-latest
+    name: Terraform Plan for IAM Resources
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_wrapper: false
+      
+      - name: Configure AWS Credentials with OIDC
+        id: creds
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::876278403405:role/github-oidc-automation
+          aws-region: ${{ env.AWS_REGION }}
+          role-session-name: GitHubActionsSession
+          output-credentials: true 
+
+      - run: terraform init -backend-config=dev/backend.hcl 
+        working-directory: iam  # Ensure this directory exists
+
+      - run: terraform workspace select dev || terraform workspace new dev
+        working-directory: iam  # Ensure this directory exists
+
+      - run: terraform plan -var-file=dev/dev.tfvars -lock=false -out terraform.plan
+        working-directory: iam  # Ensure this directory exists
+
+      - run: terraform show -no-color terraform.plan > terraform.text
+        working-directory: iam  # Ensure this directory exists
+
+      - run: terraform show -json terraform.plan > terraform.json
+        working-directory: iam  # Ensure this directory exists
+
+      - uses: ahmadnassri/action-terraform-report@v4
+        with:
+          terraform-text: ${{ github.workspace }}/iam/terraform.text
+          terraform-json: ${{ github.workspace }}/iam/terraform.json
+          remove-stale-reports: true
+
+  terraform-plan-resources:
+    needs: determine-changes
+    if: needs.determine-changes.outputs.resources_changed == 'true'  # Boolean check without quotes
+    runs-on: ubuntu-latest
+    name: Terraform Plan for Application Resources
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_wrapper: false
+      
+      - name: Configure AWS Credentials with OIDC
+        id: creds
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::876278403405:role/github-oidc-automation
+          aws-region: ${{ env.AWS_REGION }}
+          role-session-name: GitHubActionsSession
+          output-credentials: true
+
+      - run: terraform init -backend-config=dev/backend.hcl
+        working-directory: resources  # Ensure this directory exists
+
+      - run: terraform workspace select dev || terraform workspace new dev
+        working-directory: resources  # Ensure this directory exists
+
+      - run: terraform plan -var-file=dev/dev.tfvars -lock=false -out terraform.plan
+        working-directory: resources  # Ensure this directory exists
+
+      - run: terraform show -no-color terraform.plan > terraform.text
+        working-directory: resources  # Ensure this directory exists
+
+      - run: terraform show -json terraform.plan > terraform.json
+        working-directory: resources  # Ensure this directory exists
+
+      - uses: ahmadnassri/action-terraform-report@v4
+        with:
+          terraform-text: ${{ github.workspace }}/resources/terraform.text
+          terraform-json: ${{ github.workspace }}/resources/terraform.json
+          remove-stale-reports: true

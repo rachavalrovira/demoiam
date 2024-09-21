@@ -24,7 +24,7 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Setup TFLint
+      - name: Tflint IaC scan
         run: |
           curl -s https://raw.githubusercontent.com/terraform-linters/tflint/master/install_linux.sh | bash
           tflint --init
@@ -34,3 +34,4 @@ jobs:
         uses: github/codeql-action/upload-sarif@v3
         with:
           sarif_file: 'tflint-report.sarif'
+          category: 'Terraform'
