@@ -5,7 +5,7 @@ on:
 
 jobs:
   terraform-plan-iam:
-    if: contains(github.event.pull_request.head.ref, 'iam') || contains(github.event.pull_request.head.ref, 'terraform/iam')
+    if: contains(github.event.pull_request.head.ref, 'iam') || contains(github.event.pull_request.head.ref, 'iam')
     runs-on: ubuntu-latest
     name: Terraform Plan for IAM Resources
 
@@ -37,7 +37,7 @@ jobs:
           remove-stale-reports: true
 
   terraform-plan-resources:
-    if: contains(github.event.pull_request.head.ref, 'resources') || contains(github.event.pull_request.head.ref, 'terraform/resources')
+    if: contains(github.event.pull_request.head.ref, 'resources') || contains(github.event.pull_request.head.ref, 'resources')
     runs-on: ubuntu-latest
     name: Terraform Plan for Application Resources
 
