@@ -9,6 +9,9 @@ permissions:
   id-token: write
   contents: read
   issues: write
+  pull-requests: write
+  security-events: write
+  actions: read
 
 env:
   AWS_REGION: us-east-1
@@ -57,6 +60,9 @@ jobs:
           output-credentials: true 
 
       - run: terraform init -backend-config=dev/backend.hcl 
+        working-directory: iam  # Ensure this directory exists
+
+      - run: terraform workspace select dev || terraform workspace new dev
         working-directory: iam  # Ensure this directory exists
 
       - run: terraform plan -var-file=dev/dev.tfvars -lock=false -out terraform.plan
