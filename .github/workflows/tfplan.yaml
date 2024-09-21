@@ -101,7 +101,7 @@ jobs:
           role-session-name: GitHubActionsSession
           output-credentials: true
 
-      - run: terraform init -backend-config=/dev/backend.hcl
+      - run: terraform init -backend-config=dev/backend.hcl
         working-directory: resources  # Ensure this directory exists
 
       - run: terraform workspace select dev || terraform workspace new dev
