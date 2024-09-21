@@ -117,9 +117,7 @@ jobs:
         working-directory: iam
 
   application_resources:
-    needs: 
-      - determine-changes
-      - iam_resources
+    needs: determine-changes
     if: ${{ needs.determine-changes.outputs.resources == 'true' }}  # Boolean check without quotes
     name: Create Application Resources
 
