@@ -28,12 +28,13 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: ${{ github.event.pull_request.base.ref }}
+          fetch-depth: 100
 
       - name: Check which folders have changed
         id: filter
         uses: dorny/paths-filter@v3
         with:
+          base: 'main'
           filters: |
             iam:
               - 'iam/**'  # Ensure this path is correct
