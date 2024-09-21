@@ -30,7 +30,7 @@ jobs:
 
       - name: Check which folders have changed
         id: filter
-        uses: dorny/paths-filter@v2
+        uses: dorny/paths-filter@v3
         with:
           filters: |
             iam:
