@@ -7,6 +7,8 @@ name: tflint
 
 on:
   pull_request:
+    branches:
+      - main
     paths:
       - 'iam/**'
       - 'resources/**'
