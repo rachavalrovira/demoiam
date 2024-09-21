@@ -1,4 +1,4 @@
-name: Deploy Terraform Application and IAM Resources
+name: deploy
 
 on:
   push:
