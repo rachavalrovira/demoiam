@@ -106,7 +106,7 @@ jobs:
 
       - run: terraform workspace select dev || terraform workspace new dev
 
-      - run: terraform plan var-file=dev/dev.tfvars -lock=false -out terraform.plan
+      - run: terraform plan -var-file=dev/dev.tfvars -lock=false -out terraform.plan
         working-directory: resources  # Ensure this directory exists
 
       - run: terraform show -no-color terraform.plan > terraform.text
