@@ -5,7 +5,7 @@ data "terraform_remote_state" "iam" {
   backend = "s3"
   config = {
     bucket = "iam-demo-bucket-876278403405"
-    key    = "demoiam/iam-roles/${terraform.workspace}/terraform.tfstate"
+    key    = "demoiam/iam-roles/dev/terraform.tfstate"
     region = var.aws_region
   }
 }
