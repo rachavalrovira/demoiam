@@ -17,6 +17,9 @@ permissions:
   id-token: write
   contents: read
   issues: write
+  pull-requests: write
+  security-events: write
+  actions: read
 
 env:
   AWS_REGION: us-east-1
@@ -24,10 +27,31 @@ env:
   PYTHON_VERSION: '3.12.0'
 
 jobs:
+  determine-changes:
+    runs-on: ubuntu-latest
+    outputs:
+      iam_changed: ${{ steps.filter.outputs.iam }}
+      resources_changed: ${{ steps.filter.outputs.resources }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check which folders have changed
+        id: filter
+        uses: dorny/paths-filter@v3
+        with:
+          filters: |
+            iam:
+              - 'iam/**'  # Ensure this path is correct
+            resources:
+              - 'resources/**'  # Ensure this path is correct
+
   iam_resources:
-    if: github.event_name == 'push' && contains(github.event.head_commit.message, 'iam')
+    needs: determine-changes
+    if: needs.determine-changes.outputs.iam_changed == 'true'  # Boolean check without quotes
     name: Create IAM Resources
     runs-on: ubuntu-latest
+    environment: ${{ github.event.inputs.environment }}  # Set environment here
 
     steps:
       - name: Checkout code
@@ -90,10 +114,14 @@ jobs:
         working-directory: iam
 
   application_resources:
-    if: github.event_name == 'push' && contains(github.event.head_commit.message, 'resources')
+    needs: 
+      - determine-changes
+      - iam_resources
+    if: needs.determine-changes.outputs.resources_changed == 'true'  # Boolean check without quotes
     name: Create Application Resources
-    needs: iam_resources
+
     runs-on: ubuntu-latest
+    environment: ${{ github.event.inputs.environment }}  # Set environment here
 
     steps:
       - name: Checkout code
