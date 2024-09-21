@@ -34,19 +34,16 @@ jobs:
       resources: ${{ steps.filter.outputs.resources }}
 
     steps:
-      - uses: actions/checkout@v4
-        with:
-          ref: ${{ github.event.before }}
-
       - name: Check which folders have changed
         id: filter
         uses: dorny/paths-filter@v3
         with:
+          base: 'main'
           filters: |
             iam:
-              - 'iam/**'  # Ensure this path is correct
+              - 'iam/**'
             resources:
-              - 'resources/**'  # Ensure this path is correct
+              - 'resources/**'
 
   iam_resources:
     needs: determine-changes
