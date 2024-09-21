@@ -32,6 +32,7 @@ jobs:
         id: filter
         uses: dorny/paths-filter@v3
         with:
+          base: 'origin/main'
           filters: |
             iam:
               - 'iam/**'  # Ensure this path is correct
