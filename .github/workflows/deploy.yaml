@@ -1,4 +1,4 @@
-name: Deploy Terraform Application and IAM Resources 
+name: Deploy Terraform Application and IAM Resources
 
 on:
   push:
@@ -25,6 +25,7 @@ env:
 
 jobs:
   iam_resources:
+    if: github.event_name == 'push' && contains(github.event.head_commit.message, 'iam')
     name: Create IAM Resources
     runs-on: ubuntu-latest
 
@@ -89,6 +90,7 @@ jobs:
         working-directory: iam
 
   application_resources:
+    if: github.event_name == 'push' && contains(github.event.head_commit.message, 'resources')
     name: Create Application Resources
     needs: iam_resources
     runs-on: ubuntu-latest

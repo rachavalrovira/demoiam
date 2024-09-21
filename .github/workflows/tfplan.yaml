@@ -1,0 +1,69 @@
+name: terraform-plan
+
+on:
+  pull_request:
+
+jobs:
+  terraform-plan-iam:
+    if: contains(github.event.pull_request.head.ref, 'iam') || contains(github.event.pull_request.head.ref, 'terraform/iam')
+    runs-on: ubuntu-latest
+    name: Terraform Plan for IAM Resources
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_wrapper: false
+
+      - run: terraform init 
+        working-directory: iam
+
+      - run: terraform plan -lock=false -out terraform.plan
+        working-directory: iam
+
+      # generate plain output
+      - run: terraform show -no-color terraform.plan > terraform.text
+        working-directory: iam
+
+      # generate json output
+      - run: terraform show -json terraform.plan > terraform.json
+        working-directory: iam
+
+      - uses: ahmadnassri/action-terraform-report@v4
+        with:
+          # tell the action the plan outputs
+          terraform-text: ${{ github.workspace }}/iam/terraform.text
+          terraform-json: ${{ github.workspace }}/iam/terraform.json
+          remove-stale-reports: true
+
+  terraform-plan-resources:
+    if: contains(github.event.pull_request.head.ref, 'resources') || contains(github.event.pull_request.head.ref, 'terraform/resources')
+    runs-on: ubuntu-latest
+    name: Terraform Plan for Application Resources
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_wrapper: false
+
+      - run: terraform init 
+        working-directory: resources
+
+      - run: terraform plan -lock=false -out terraform.plan
+        working-directory: resources
+
+      # generate plain output
+      - run: terraform show -no-color terraform.plan > terraform.text
+        working-directory: resources
+
+      # generate json output
+      - run: terraform show -json terraform.plan > terraform.json
+        working-directory: resources
+
+      - uses: ahmadnassri/action-terraform-report@v4
+        with:
+          # tell the action the plan outputs
+          terraform-text: ${{ github.workspace }}/resources/terraform.text
+          terraform-json: ${{ github.workspace }}/resources/terraform.json
+          remove-stale-reports: true
