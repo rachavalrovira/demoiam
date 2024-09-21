@@ -41,7 +41,6 @@ module "lambda_function_1" {
   create_current_version_allowed_triggers = false
   create_role                             = false
   lambda_role                             = data.terraform_remote_state.iam.outputs.dynamodb_writer_role_arn
-  ignore_source_code_hash                 = true
 }
 
 
@@ -56,7 +55,6 @@ module "lambda_function_2" {
   create_current_version_allowed_triggers = false
   create_role                             = false
   lambda_role                             = data.terraform_remote_state.iam.outputs.basic_lambda_role_arn
-  ignore_source_code_hash                 = true
 }
 
 module "s3_bucket" {
@@ -94,5 +92,4 @@ module "lambda_function_3" {
   create_current_version_allowed_triggers = false
   create_role                             = false
   lambda_role                             = data.terraform_remote_state.iam.outputs.s3_rw_role_arn
-  ignore_source_code_hash                 = true
 }

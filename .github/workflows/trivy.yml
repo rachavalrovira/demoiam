@@ -6,10 +6,10 @@
 name: trivy
 
 on:
-    push:
-      branches:
-        - main
-    pull_request:
+  pull_request:
+    paths:
+      - 'iam/**'
+      - 'resources/**'
 
 permissions:
   contents: read

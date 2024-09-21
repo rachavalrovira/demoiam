@@ -30,8 +30,8 @@ jobs:
   determine-changes:
     runs-on: ubuntu-latest
     outputs:
-      iam_changed: ${{ steps.filter.outputs.iam }}
-      resources_changed: ${{ steps.filter.outputs.resources }}
+      iam: ${{ steps.filter.outputs.iam }}
+      resources: ${{ steps.filter.outputs.resources }}
 
     steps:
       - uses: actions/checkout@v4
@@ -40,7 +40,6 @@ jobs:
         id: filter
         uses: dorny/paths-filter@v3
         with:
-          base: 'main'
           filters: |
             iam:
               - 'iam/**'  # Ensure this path is correct
@@ -49,7 +48,7 @@ jobs:
 
   iam_resources:
     needs: determine-changes
-    if: needs.determine-changes.outputs.iam_changed == 'true'  # Boolean check without quotes
+    if: ${{ needs.determine-changes.outputs.iam == 'true' }}
     name: Create IAM Resources
     runs-on: ubuntu-latest
     environment: ${{ github.event.inputs.environment }}  # Set environment here
@@ -118,7 +117,7 @@ jobs:
     needs: 
       - determine-changes
       - iam_resources
-    if: needs.determine-changes.outputs.resources_changed == 'true'  # Boolean check without quotes
+    if: ${{ needs.determine-changes.outputs.resources == 'true' }}  # Boolean check without quotes
     name: Create Application Resources
 
     runs-on: ubuntu-latest

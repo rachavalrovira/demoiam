@@ -22,8 +22,8 @@ jobs:
   determine-changes:
     runs-on: ubuntu-latest
     outputs:
-      iam_changed: ${{ steps.filter.outputs.iam }}
-      resources_changed: ${{ steps.filter.outputs.resources }}
+      iam: ${{ steps.filter.outputs.iam }}
+      resources: ${{ steps.filter.outputs.resources }}
 
     steps:
       - uses: actions/checkout@v4
@@ -32,7 +32,6 @@ jobs:
         id: filter
         uses: dorny/paths-filter@v3
         with:
-          base: 'origin/main'
           filters: |
             iam:
               - 'iam/**'  # Ensure this path is correct
@@ -41,7 +40,7 @@ jobs:
 
   terraform-plan-iam:
     needs: determine-changes
-    if: needs.determine-changes.outputs.iam_changed == 'true'  # Boolean check without quotes
+    if: ${{ needs.determine-changes.outputs.iam == 'true' }}  # Boolean check without quotes
     runs-on: ubuntu-latest
     name: Terraform Plan for IAM Resources
 
@@ -83,7 +82,7 @@ jobs:
 
   terraform-plan-resources:
     needs: determine-changes
-    if: needs.determine-changes.outputs.resources_changed == 'true'  # Boolean check without quotes
+    if: ${{ needs.determine-changes.outputs.resources == 'true' }}  # Boolean check without quotes
     runs-on: ubuntu-latest
     name: Terraform Plan for Application Resources
 
