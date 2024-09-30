@@ -10,7 +10,6 @@ data "terraform_remote_state" "iam" {
   }
 }
 
-
 module "dynamodb_table" {
   source         = "terraform-aws-modules/dynamodb-table/aws"
   name           = "${var.resources_prefix}-table"
@@ -25,7 +24,6 @@ module "dynamodb_table" {
     }
   ]
 }
-
 
 module "lambda_function_1" {
   source        = "terraform-aws-modules/lambda/aws"
@@ -42,7 +40,6 @@ module "lambda_function_1" {
   create_role                             = false
   lambda_role                             = data.terraform_remote_state.iam.outputs.dynamodb_writer_role_arn
 }
-
 
 module "lambda_function_2" {
   source                                  = "terraform-aws-modules/lambda/aws"
@@ -76,7 +73,6 @@ module "s3_bucket" {
     enabled = true
   }
 }
-
 
 module "lambda_function_3" {
   source        = "terraform-aws-modules/lambda/aws"

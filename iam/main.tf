@@ -40,7 +40,6 @@ module "dynamodb_writer_role" {
   ]
 }
 
-
 module "s3_rw_role" {
   source               = "terraform-aws-modules/iam/aws//modules/iam-assumable-role"
   version              = "~> 5.0"
