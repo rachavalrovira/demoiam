@@ -11,7 +11,8 @@ module "basic_lambda_role" {
     "lambda.amazonaws.com"
   ]
   custom_role_policy_arns = [
-    "arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
+    "arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole",
+    "arn:aws:iam::aws:policy/service-role/AWSLambdaVPCAccessExecutionRole"
   ]
 }
 
